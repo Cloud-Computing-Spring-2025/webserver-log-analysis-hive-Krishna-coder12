@@ -197,9 +197,3 @@ To copy the output from HDFS to your local machine:
 6.Extracting Meaningful Insights: Refining queries and analysis techniques iteratively was essential to derive accurate and valuable insights from raw log data.
 
 
-### Output Expected **
-1) Total Web Requests:
-   
-```sql
-
-```
