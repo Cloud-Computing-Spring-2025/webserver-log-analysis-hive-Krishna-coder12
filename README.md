@@ -22,6 +22,11 @@ docker compose up -d
 
 ### 2. **Setup Hive Environment**
 
+```bash
+docker exec -it hive-server /bin/bash
+hive
+```
+
 ### 3. **Creating a Database**
 
 Creating a database in the hive environment:
