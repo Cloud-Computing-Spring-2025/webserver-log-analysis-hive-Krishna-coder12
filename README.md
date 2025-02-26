@@ -195,3 +195,11 @@ To copy the output from HDFS to your local machine:
 5.Data Cleaning and Formatting: Addressing inconsistencies in log files, such as missing or malformed entries, added an additional layer of preprocessing work.
 
 6.Extracting Meaningful Insights: Refining queries and analysis techniques iteratively was essential to derive accurate and valuable insights from raw log data.
+
+
+### Output Expected **
+1) Total Web Requests:
+   
+```sql
+
+```
