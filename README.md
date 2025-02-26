@@ -181,3 +181,17 @@ To copy the output from HDFS to your local machine:
     docker cp hive-server:/tmp/output /workspaces/webserver-log-analysis-hive-Krishna-coder12/
     ```
 3. Commit and push to your repo to the github.
+
+### 11. **Challenges Faced **
+
+1.Configuring the Hadoop Cluster: Setting up and initializing the Hadoop cluster within a Docker environment was initially challenging, requiring extensive debugging and fine-tuning.
+
+2.Managing Large Log Files: Processing vast amounts of log data resulted in memory and performance issues, necessitating optimization strategies to enhance efficiency.
+
+3.Optimizing Queries: Ensuring the efficient execution of Hive queries, especially when dealing with partitioning and aggregations, required careful tuning and adjustments.
+
+4.Implementing Partitioning Strategies: Effectively applying dynamic partitioning while maintaining proper partition placement proved to be a complex task.
+
+5.Data Cleaning and Formatting: Addressing inconsistencies in log files, such as missing or malformed entries, added an additional layer of preprocessing work.
+
+6.Extracting Meaningful Insights: Refining queries and analysis techniques iteratively was essential to derive accurate and valuable insights from raw log data.
