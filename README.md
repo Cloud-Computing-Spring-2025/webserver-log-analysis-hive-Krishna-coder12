@@ -1,20 +1,18 @@
 # Web-Server-Log-Analysis
 
-This repository is designed to test MapReduce jobs using a simple word count dataset.
+Your task is to analyze the web server logs using Apache Hive and perform the following tasks:
 
-## Objectives
-
-By completing this activity, students will:
-
-1. **Understand Hadoop's Architecture:** Learn how Hadoop's distributed file system (HDFS) and MapReduce framework work together to process large datasets.
-2. **Build and Deploy a MapReduce Job:** Gain experience in compiling a Java MapReduce program, deploying it to a Hadoop cluster, and running it using Docker.
-3. **Interact with Hadoop Ecosystem:** Practice using Hadoop commands to manage HDFS and execute MapReduce jobs.
-4. **Work with Docker Containers:** Understand how to use Docker to run and manage Hadoop components and transfer files between the host and container environments.
-5. **Analyze MapReduce Job Outputs:** Learn how to retrieve and interpret the results of a MapReduce job.
+Count Total Web Requests: Calculate the total number of requests processed.
+Analyze Status Codes: Determine the frequency of HTTP status codes (e.g., 200, 404, 500).
+Identify Most Visited Pages: Extract the top 3 most visited URLs.
+Traffic Source Analysis: Identify the most common user agents (browsers).
+Detect Suspicious Activity: Identify IP addresses with more than 3 failed requests (status 404 or 500).
+Analyze Traffic Trends: Calculate the number of requests per minute to observe traffic patterns.
+Implement Partitioning: Use partitioning by status code to optimize query performance.
 
 ## Setup and Execution
 
-### 1. **Start the Hadoop Cluster**
+### 1.**Start the Hadoop Cluster**
 
 Run the following command to start the Hadoop cluster:
 
@@ -22,64 +20,114 @@ Run the following command to start the Hadoop cluster:
 docker compose up -d
 ```
 
-### 2. **Build the Code**
+### 2. **Setup Hive Environment**
 
-Build the code using Maven:
+### 3. **Creating a Database**
+
+Creating a database in the hive environment:
 
 ```bash
-mvn install
+CREATE DATABASE web_logs;
+USE web_logs;
 ```
 
-### 3. **Move JAR File to Shared Folder**
+### 4. **Creating Hive Table**
 
-Move the generated JAR file to a shared folder for easy access:
+Define an External Table for Web Logs:
 
 ```bash
-mv target/*.jar shared-folder/input/data/
+CREATE EXTERNAL TABLE web_server_logs (
+    ip STRING,
+    `timestamp` STRING,
+    url STRING,
+    status INT,
+    user_agent STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION '/user/hive/web_logs/';
 ```
 
-### 4. **Copy JAR to Docker Container**
+### 5. **Loaded the csv file manually in the hive**
 
-Copy the JAR file to the Hadoop ResourceManager container:
+Downloaded the CSV file and uploaded manually in the hive in the following path '/user/hive/web_logs/web_server_logs.csv'.
+And Run the following command in the Query Tab.
 
 ```bash
-docker cp shared-folder/input/data/WordCountUsingHadoop-0.0.1-SNAPSHOT.jar resourcemanager:/opt/hadoop-3.2.1/share/hadoop/mapreduce/
+LOAD DATA INPATH '/user/hive/web_logs/web_server_logs.csv' INTO TABLE web_logs;
 ```
 
-### 5. **Move Dataset to Docker Container**
+### 6. **Execute Analysis Queries**
 
-Copy the dataset to the Hadoop ResourceManager container:
-
+1) Total Web Requests:
 ```bash
-docker cp shared-folder/input/data/input.txt resourcemanager:/opt/hadoop-3.2.1/share/hadoop/mapreduce/
+SELECT COUNT(*) AS total_requests FROM web_server_logs;
 ```
 
-### 6. **Connect to Docker Container**
-
-Access the Hadoop ResourceManager container:
-
+2) Status Code Analysis:
 ```bash
-docker exec -it resourcemanager /bin/bash
+SELECT status, COUNT(*) AS count FROM web_server_logs GROUP BY status;
 ```
 
-Navigate to the Hadoop directory:
-
+3) Most Visited Pages:
 ```bash
-cd /opt/hadoop-3.2.1/share/hadoop/mapreduce/
+SELECT url, COUNT(*) AS visits 
+FROM web_server_logs 
+GROUP BY url 
+ORDER BY visits DESC;
 ```
 
-### 7. **Set Up HDFS**
-
-Create a folder in HDFS for the input dataset:
-
+4) Traffic Source Analysis:
 ```bash
-hadoop fs -mkdir -p /input/dataset
+SELECT user_agent, COUNT(*) AS count 
+FROM web_server_logs 
+GROUP BY user_agent 
+ORDER BY count DESC;
 ```
 
-Copy the input dataset to the HDFS folder:
+5) Suspicious IP Addresses:
+```bash
+SELECT ip, COUNT(*) AS failed_requests 
+FROM web_server_logs 
+WHERE status IN (404, 500) 
+GROUP BY ip 
+HAVING COUNT(*) > 3;
+```
+
+6) Traffic Trend Over Time:
+```bash
+SELECT SUBSTR(`timestamp`, 1, 16) AS minute, COUNT(*) AS request_count 
+FROM web_server_logs 
+GROUP BY SUBSTR(`timestamp`, 1, 16) 
+ORDER BY minute;
+```
+
+
+### 7. **Implement Partitioning for Performance Optimization**
+
+Created Partitioned Table:
 
 ```bash
-hadoop fs -put ./input.txt /input/dataset
+CREATE TABLE web_logs_partitioned (
+    ip STRING,
+    `timestamp` STRING,
+    url STRING,
+    user_agent STRING
+)
+PARTITIONED BY (status INT)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+```
+
+Load Data into Partitioned Table:
+
+```bash
+SET hive.exec.dynamic.partition.mode=non-strict;
+INSERT INTO TABLE web_logs_partitioned PARTITION (status)
+SELECT ip, timestamp, url, user_agent, status FROM web_server_logs;
 ```
 
 ### 8. **Execute the MapReduce Job**
